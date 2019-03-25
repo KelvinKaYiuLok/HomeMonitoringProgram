@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HMP.Server", "HMP.Server\HMP.Server.csproj", "{8C242CCB-8500-4323-9302-765EECAB4276}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HMP.App", "HMP.App\HMP.App.csproj", "{A02B7812-0480-4125-ABE9-95D5451AE12C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8C242CCB-8500-4323-9302-765EECAB4276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C242CCB-8500-4323-9302-765EECAB4276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C242CCB-8500-4323-9302-765EECAB4276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C242CCB-8500-4323-9302-765EECAB4276}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A02B7812-0480-4125-ABE9-95D5451AE12C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A02B7812-0480-4125-ABE9-95D5451AE12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A02B7812-0480-4125-ABE9-95D5451AE12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A02B7812-0480-4125-ABE9-95D5451AE12C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AC361E02-5CC2-4759-964A-A2AF8F24A34D}
+	EndGlobalSection
+EndGlobal
