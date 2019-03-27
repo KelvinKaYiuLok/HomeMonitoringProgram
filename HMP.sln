@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HMP.Server", "HMP.Server\HMP.Server.csproj", "{8C242CCB-8500-4323-9302-765EECAB4276}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HMP.Server", "HMP.Server\HMP.Server.csproj", "{8C242CCB-8500-4323-9302-765EECAB4276}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HMP.App", "HMP.App\HMP.App.csproj", "{A02B7812-0480-4125-ABE9-95D5451AE12C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HMP.App", "HMP.App\HMP.App.csproj", "{A02B7812-0480-4125-ABE9-95D5451AE12C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{A7A3B19E-E48D-43E8-BA9F-67B421E1D83F}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
