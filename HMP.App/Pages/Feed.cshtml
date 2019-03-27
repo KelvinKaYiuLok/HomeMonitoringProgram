@@ -1,0 +1,158 @@
+﻿@page "/feed"
+
+    <label class="nhsuk-label">
+        Feed
+    </label>
+
+    <div class="nhsuk-form-group">
+        <select class="nhsuk-select" id="FeedSelect" name="select-1" bind="@FeedType" oninput="@OnFeedInputChange">
+            <option value="1">Aptamil Stage 1</option>
+            <option value="2">Breast Milk</option>
+            <option value="3">SMA PRO First</option>
+            <option value="4">Hipp Organic Combiotic</option>
+            <option value="5">Holle Organic First</option>
+            <option value="6">ALDI Mamia</option>
+            <option value="7">SMA Wsoy Soya</option>
+            <option value="8">Other</option>
+        </select>
+    </div>
+
+    <div class="nhsuk-form-group">
+        <label class="nhsuk-label" for="input-example">
+            Amount
+        </label>
+        <input class="nhsuk-input nhsuk-input--width-2" ref="@FeedAmountInput" id="amountTextbox" name="amount" type="number" bind="@FeedAmount" oninput="@OnAmountInput" /> ml
+        <br />
+        <br />
+        <input type="range" min="0" max="300" name="weight" orient="vertical" bind="@FeedAmount" oninput="@OnAmountInput" />
+    </div>
+
+    <button class="nhsuk-button @(isSaved? "nhsuk-button--disabled": "")" type="submit" onclick="@OnSaveClick">
+        @if (isSaved)
+        {
+        <span>Done</span>
+        }
+        else
+        {
+            <i class="fas fa-check"></i>
+        }
+    </button>
+
+    @functions {
+        private decimal FeedAmount { get; set; }
+        private string FeedType { get; set; }
+        private bool isSaved = false;
+        private ElementRef FeedAmountInput;
+
+        protected override void OnInit()
+        {
+            var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+            string[] includes = { "Observation" };
+            var searchParams = new SearchParams();
+
+            searchParams.Add("patient", Configuration.PATIENT_LOGICAL_ID);
+
+            List<Observation> feedObservationList = new List<Observation>();
+
+            var observationBundle = client.Search<Observation>(searchParams);
+
+            foreach (var entry in observationBundle.Entry)
+            {
+                var obs = (Observation)entry.Resource;
+
+                var code = obs.Code.Coding.FirstOrDefault();
+                if (code != null)
+                {
+                    if (code.System == "http://hapi.fhir.org/baseDstu3/CodeSystem/NHSHMP-FeedType-1")
+                    {
+                        feedObservationList.Add(obs);
+                    }
+                }
+            }
+
+            var lastFeedObservation = feedObservationList.OrderByDescending(o => o.Id).FirstOrDefault();
+            if(lastFeedObservation != null)
+            {
+                if (lastFeedObservation?.Value is Quantity)
+                {
+                    var quantity = (Quantity)lastFeedObservation.Value;
+                    FeedAmount = quantity.Value ?? 0;
+                }
+
+                var code = lastFeedObservation.Code.Coding.FirstOrDefault();
+                if (code != null)
+                {
+                    if (code.System == "http://hapi.fhir.org/baseDstu3/CodeSystem/NHSHMP-FeedType-1")
+                    {
+                        FeedType = code.Code;
+                    }
+                }
+            }
+        }
+
+        protected async override System.Threading.Tasks.Task OnAfterRenderAsync()
+        {
+            await JSRuntime.Current.InvokeAsync<bool>("commonFunctions.focus", FeedAmountInput);
+        }
+
+        void OnAmountInput(UIChangeEventArgs e)
+        {
+            isSaved = false;
+        }
+
+        void OnFeedInputChange(UIChangeEventArgs e)
+        {
+            isSaved = false;
+        }
+
+        void OnSaveClick(UIMouseEventArgs e)
+        {
+            var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+            string feedTypeDisplayText;
+
+            if (FeedType == "1")
+            {
+                feedTypeDisplayText = "Aptamil Stage 1";
+            }
+            else if (FeedType == "2")
+            {
+                feedTypeDisplayText = "Breast Milk";
+            }
+            else if (FeedType == "3")
+            {
+                feedTypeDisplayText = "SMA PRO First";
+            }
+            else if (FeedType == "4")
+            {
+                feedTypeDisplayText = "Hipp Organic Combiotic";
+            }
+            else if (FeedType == "5")
+            {
+                feedTypeDisplayText = "Holle Organic First";
+            }
+            else if (FeedType == "6")
+            {
+                feedTypeDisplayText = "ALDI Mamia";
+            }
+            else if (FeedType == "7")
+            {
+                feedTypeDisplayText = "SMA Wsoy Soya";
+            }
+            else
+            {
+                feedTypeDisplayText = "Other";
+            }
+
+            var obs = new Observation();
+            obs.Code = new CodeableConcept("http://hapi.fhir.org/baseDstu3/CodeSystem/NHSHMP-FeedType-1", FeedType, feedTypeDisplayText);
+            obs.Subject = new ResourceReference($"Patient/{Configuration.PATIENT_LOGICAL_ID}");
+            obs.Value = new Quantity(FeedAmount, "ml");
+
+            obs.Status = ObservationStatus.Registered;
+            obs.Issued = new DateTimeOffset(DateTime.Now);
+
+            client.Create<Observation>(obs);
+
+            isSaved = true;
+        }
+    }

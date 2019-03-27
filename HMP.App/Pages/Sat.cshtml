@@ -1,0 +1,94 @@
+﻿@page "/sat"
+
+
+    <div class="nhsuk-form-group">
+        <label class="nhsuk-label" for="saturation">
+            Saturation
+        </label>
+        <input class="nhsuk-input nhsuk-input--width-2" ref="@SatInput" id="saturationTextBox" name="saturation" type="number" bind="@SaturationValue" oninput="@OnSaturationInput" /> %
+        <br />
+        <br />
+        <input type="range" min="0" max="100" name="weight" orient="vertical" bind="@SaturationValue" oninput="@OnSaturationInput" />
+        <br />
+        <br />
+        <button class="nhsuk-button @(isSaved? "nhsuk-button--disabled": "")" type="submit" onclick="@OnSaveClick">
+            @if (isSaved)
+            {
+            <span>Done</span>
+            }
+            else
+            {
+                <i class="fas fa-check"></i>
+            }
+        </button>
+    </div>
+
+
+        @functions {
+            private decimal SaturationValue { get; set; }
+            private bool isSaved = false;
+            private ElementRef SatInput;
+
+            protected override void OnInit()
+            {
+                var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+                string[] includes = { "Observation" };
+                var searchParams = new SearchParams();
+
+                searchParams.Add("patient", Configuration.PATIENT_LOGICAL_ID);
+
+                List<Observation> satObservationList = new List<Observation>();
+
+                var observationBundle = client.Search<Observation>(searchParams);
+
+                foreach (var entry in observationBundle.Entry)
+                {
+                    var obs = (Observation)entry.Resource;
+
+                    var code = obs.Code.Coding.FirstOrDefault();
+                    if (code != null)
+                    {
+                        if (code.System == "http://snomed.info/sct" && code.Code == "103228002")
+                        {
+                            satObservationList.Add(obs);
+                        }
+                    }
+                }
+
+                var lastSatObservation = satObservationList.OrderByDescending(o => o.Id).FirstOrDefault();
+                if (lastSatObservation != null)
+                {
+                    if (lastSatObservation?.Value is Quantity)
+                    {
+                        var quantity = (Quantity)lastSatObservation.Value;
+                        SaturationValue = quantity.Value ?? 0;
+                    }
+                }
+            }
+
+            protected async override System.Threading.Tasks.Task OnAfterRenderAsync()
+            {
+                await JSRuntime.Current.InvokeAsync<bool>("commonFunctions.focus", SatInput);
+            }
+
+            void OnSaturationInput(UIChangeEventArgs e)
+            {
+                isSaved = false;
+            }
+
+            void OnSaveClick(UIMouseEventArgs e)
+            {
+                var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+
+                var obs = new Observation();
+                obs.Code = new CodeableConcept("http://snomed.info/sct", "103228002", "Hemoglobin saturation with oxygen");
+                obs.Subject = new ResourceReference($"Patient/{Configuration.PATIENT_LOGICAL_ID}");
+                obs.Value = new Quantity(SaturationValue, "%");
+                obs.Status = ObservationStatus.Registered;
+                obs.Issued = new DateTimeOffset(DateTime.Now);
+
+                client.Create<Observation>(obs);
+
+                isSaved = true;
+            }
+        }

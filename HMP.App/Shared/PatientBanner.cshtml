@@ -1,0 +1,19 @@
+﻿@if (PatientBundle != null)
+{
+    var entry = PatientBundle.Entry.FirstOrDefault();
+
+    if (entry != null && entry.Resource is Patient)
+    {
+        var patient = (Patient)entry.Resource;
+        var name = patient.GetFullName(HumanName.NameUse.Official);
+
+        <label class="nhsuk-label patientName">
+            @name @patient.BirthDateElement.ToDateTime().Value.ToString("dd MMM yyyy")
+        </label>
+    }
+}
+
+@functions {
+    [Parameter]
+    Bundle PatientBundle { get; set; }
+}

@@ -1,14 +1,240 @@
 ﻿@page "/"
+@using ChartJs.Blazor.ChartJS.Common
+@using ChartJs.Blazor.ChartJS.Common.Legends
+@using ChartJs.Blazor.ChartJS.LineChart
+@using ChartJs.Blazor.Charts
 
-<h1>Show patient details</h1>
+<dl class="nhsuk-summary-list">
+    <div class="nhsuk-summary-list__row">
+        <dt class="nhsuk-summary-list__key">
+            Last Weight
+        </dt>
+        <dd class="nhsuk-summary-list__value">
+            @if (lastWeightObservation != null)
+            {
+                if (lastWeightObservation?.Value is Quantity)
+                {
+                    var quantity = (Quantity)lastWeightObservation.Value;
+                    @quantity?.Value@quantity?.Unit
+                }
+            }
+        </dd>
+    </div>
+    <div class="nhsuk-summary-list__row">
+        <dt class="nhsuk-summary-list__key">
+            Last Nappy
+        </dt>
+        <dd class="nhsuk-summary-list__value">
+            @if (lastNappyObservation != null)
+            {
+                @lastNappyObservation?.Code.Text
+            }
+        </dd>
+    </div>
+    <div class="nhsuk-summary-list__row">
+        <dt class="nhsuk-summary-list__key">
+            Total Feed Today
+        </dt>
+        <dd class="nhsuk-summary-list__value">
+            @totalFeed ml
+            @*@if (lastFeedObservation != null)
+                {
+                    if (lastFeedObservation?.Value is Quantity)
+                    {
+                        var quantity = (Quantity)lastFeedObservation.Value;
+                        <span>@lastFeedObservation?.Code?.Text</span> @quantity?.Value@quantity?.Unit
+                    }
+                }*@
+        </dd>
+    </div>
+    <div class="nhsuk-summary-list__row">
+        <dt class="nhsuk-summary-list__key">
+            Last Sat
+        </dt>
+        <dd class="nhsuk-summary-list__value">
+            @if (lastSatObservation != null)
+            {
+                if (lastSatObservation?.Value is Quantity)
+                {
+                    var quantity = (Quantity)lastSatObservation.Value;
+                    @quantity?.Value@quantity?.Unit
+                }
+            }
+        </dd>
+    </div>
+</dl>
 
-<button class="nhsuk-button" type="submit">
-    Save and continue
-</button>
+<ChartJsLineChart ref="@lineChartJs" Config="@lineChartConfig" Width="300" Height="100" />
 
 @functions {
+    //public Bundle PatientBundle { get; set; }
+    Observation lastWeightObservation;
+    Observation lastSatObservation;
+    Observation lastNappyObservation;
+    Observation lastFeedObservation;
+    decimal totalFeed = 0;
+    public LineChartConfig lineChartConfig { get; set; }
+    ChartJsLineChart lineChartJs;
+
+    protected override void OnAfterRender()
+    {
+        //lineChartJs.Reload();
+    }
+
     protected override void OnInit()
     {
-        base.OnInit();
+        var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+
+        //client.OnBeforeRequest += (object sl, BeforeRequestEventArgs e1) =>
+        //{
+        //    e1.RawRequest.Headers.Add(System.Net.HttpRequestHeader.CacheControl, "no-cache");
+        //    e1.RawRequest.Headers.Add("Cache-Control", "no-cache");
+        //    e1.RawRequest.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.BypassCache);
+        //};
+
+        string[] includes = { "Observation" };
+        var searchParams = new SearchParams();
+
+        //searchParams.Add("subject", $"Patient/{Configuration.PATIENT_LOGICAL_ID}");
+        searchParams.Add("patient", Configuration.PATIENT_LOGICAL_ID);
+
+        List<Observation> weightObservationList = new List<Observation>();
+        List<Observation> satObservationList = new List<Observation>();
+        List<Observation> nappyObservationList = new List<Observation>();
+        List<Observation> feedObservationList = new List<Observation>();
+
+        //var observationBundle = client.Search<Observation>(searchParams);
+        var observationBundle = client.Search<Observation>(new string[] { $"patient={Configuration.PATIENT_LOGICAL_ID}" });
+        var data = new Dictionary<DateTime, object>();
+
+        foreach (var entry in observationBundle.Entry)
+        {
+            var obs = (Observation)entry.Resource;
+
+            var code = obs.Code.Coding.FirstOrDefault();
+            if (code != null)
+            {
+                if (code.System == "http://snomed.info/sct" && code.Code == "27113001")
+                {
+                    weightObservationList.Add(obs);
+
+                    if (obs.Value is Quantity && obs.Issued.HasValue)
+                    {
+                        var quantity = (Quantity)obs.Value;
+                        data.Add(obs.Issued.Value.DateTime, quantity.Value);
+                    }
+                }
+                else if (code.System == "http://snomed.info/sct" && code.Code == "103228002")
+                {
+                    satObservationList.Add(obs);
+                }
+                else if (code.System == "http://hapi.fhir.org/baseDstu3/CodeSystem/NHSHMP-Nappy-1")
+                {
+                    nappyObservationList.Add(obs);
+                }
+                else if (code.System == "http://hapi.fhir.org/baseDstu3/CodeSystem/NHSHMP-FeedType-1")
+                {
+                    feedObservationList.Add(obs);
+                }
+            }
+        }
+
+        lastWeightObservation = weightObservationList.OrderByDescending(o => o.Id).FirstOrDefault();
+        lastSatObservation = satObservationList.OrderByDescending(o => o.Id).FirstOrDefault();
+        lastNappyObservation = nappyObservationList.OrderByDescending(o => o.Id).FirstOrDefault();
+
+        //var now = DateTime.Now;
+        //var yesterday = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Local).AddDays(-1);
+
+        foreach (var feed in feedObservationList)
+        {
+            var issuedDate = feed.Issued.Value;
+            var issuedDateOnly = new DateTime(issuedDate.Year, issuedDate.Month, issuedDate.Day, 0, 0, 0, DateTimeKind.Local);
+
+            if ((issuedDateOnly == DateTime.Now.Date) && feed?.Value is Quantity)
+            {
+                var quantity = (Quantity)feed.Value;
+                totalFeed += quantity?.Value ?? 0;
+            }
+        }
+
+        var sortedData = from pair in data
+                         orderby pair.Key ascending
+                         select pair;
+
+        lineChartConfig = lineChartConfig ?? new LineChartConfig
+        {
+            CanvasId = Guid.NewGuid().ToString(),
+            Options = new LineChartOptions
+            {
+                Text = "Body Weight Chart",
+                Display = true,
+                Responsive = true,
+                Title = new OptionsTitle { Display = true, Text = "Body Weight Chart" },
+                Legend = new Legend
+                {
+                    Position = LegendPosition.BOTTOM.ToString(),
+                    Labels = new Labels
+                    {
+                        UsePointStyle = true
+                    }
+                },
+                Tooltips = new Tooltips
+                {
+                    Mode = Mode.nearest,
+                    Intersect = false
+                },
+                Scales = new Scales
+                {
+                    xAxes = new List<Axis>
+{
+    new Axis
+    {
+        Display = "xAxesDisplay",
+        ScaleLabel = new ScaleLabel
+        {
+            Display = ".",
+            LabelString = "Date Taken"
+        }
+    }
+},
+                    yAxes = new List<Axis>
+{
+    new Axis
+    {
+        Display = "yAxes",
+        ScaleLabel = new ScaleLabel
+        {
+            Display = "..",
+            LabelString = "Body Weight"
+        }
+    }
+}
+                },
+                Hover = new LineChartOptionsHover
+                {
+                    Intersect = true,
+                    Mode = Mode.nearest
+                }
+            },
+            Data = new LineChartData
+            {
+                Labels = sortedData.Select(d => d.Key.ToString("dd-MMM-yyyy hh:mm:ss")).ToList(),
+                Datasets = new List<LineChartDataset>
+{
+    new LineChartDataset
+    {
+        BackgroundColor = "#ff6384",
+        BorderColor = "#ff6384",
+        Label = "Body Weight",
+        Data = sortedData.Select(d => d.Value).ToList(),
+        Fill = false,
+        BorderWidth = 2,
+        PointRadius = 3,
+        PointBorderWidth = 1
+    }
+}
+            }
+        };
     }
 }

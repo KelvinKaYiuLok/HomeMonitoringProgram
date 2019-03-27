@@ -1,0 +1,20 @@
+﻿<a class="nhsuk-button @(CurrentLocation == ""? "nhsuk-button--secondary": "")" href="/" type="submit">
+    <i class="fas fa-home"></i>
+</a>
+<a class="nhsuk-button @(CurrentLocation == "weight"? "nhsuk-button--secondary": "")" href="/weight" type="submit">
+    <i class="fas fa-weight"></i>
+</a>
+<a class="nhsuk-button @(CurrentLocation == "sat"? "nhsuk-button--secondary": "")" href="/sat" type="submit">
+    <i class="fas fa-adjust"></i>
+</a>
+<a class="nhsuk-button @(CurrentLocation == "feed"? "nhsuk-button--secondary": "")" href="/feed" type="submit">
+    <i class="fas fa-tint"></i>
+</a>
+<a class="nhsuk-button @(CurrentLocation == "nappy"? "nhsuk-button--secondary": "")" href="/nappy" type="submit">
+    <i class="fas fa-baby"></i>
+</a>
+
+@functions {
+    [Parameter]
+    private string CurrentLocation { get; set; }
+}

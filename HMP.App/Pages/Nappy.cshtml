@@ -1,0 +1,114 @@
+﻿@page "/nappy"
+
+    <div class="nhsuk-form-group">
+        <fieldset class="nhsuk-fieldset">
+            <legend class="nhsuk-fieldset__legend">
+                Nappies
+            </legend>
+
+            <div class="nhsuk-radios">
+                <div class="nhsuk-radios__item">
+                    <input class="nhsuk-radios__input" id="example-divider-1" name="example" type="radio" value="2" checked="@(NappyType == "2")" onchange="@OnNappyInputChange" />
+                    <label class="nhsuk-label nhsuk-radios__label" for="example-divider-1">
+                        Dry
+                    </label>
+                </div>
+                <div class="nhsuk-radios__item">
+                    <input class="nhsuk-radios__input" id="example-divider-2" name="example" type="radio" value="1" checked="@(NappyType == "1")" onchange="@OnNappyInputChange" />
+                    <label class="nhsuk-label nhsuk-radios__label" for="example-divider-2">
+                        Wet
+                    </label>
+                </div>
+                <div class="nhsuk-radios__item">
+                    <input class="nhsuk-radios__input" id="example-divider-4" name="example" type="radio" value="3" checked="@(NappyType == "3")" onchange="@OnNappyInputChange" />
+                    <label class="nhsuk-label nhsuk-radios__label" for="example-divider-4">
+                        Bowel Movement
+                    </label>
+                </div>
+                <div class="nhsuk-radios__item">
+                    <input class="nhsuk-radios__input" id="example-divider-4" name="example" type="radio" value="4" checked="@(NappyType == "4")" onchange="@OnNappyInputChange" />
+                    <label class="nhsuk-label nhsuk-radios__label" for="example-divider-4">
+                        Wet + Bowel Movement
+                    </label>
+                </div>
+                <div class="nhsuk-radios__item">
+                    <input class="nhsuk-radios__input" id="example-divider-4" name="example" type="radio" value="5" checked="@(NappyType == "5")" onchange="@OnNappyInputChange" />
+                    <label class="nhsuk-label nhsuk-radios__label" for="example-divider-4">
+                        Diarrhoea
+                    </label>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    @*<label class="nhsuk-label">
+            Nappies
+        </label>
+
+        <div class="nhsuk-form-group">
+            <select class="nhsuk-select" id="nappySelect" name="select-1" bind="@NappyType" oninput="@OnNappyInputChange">
+                <option value="2">Dry</option>
+                <option value="1">Wet</option>
+                <option value="3">Bowel Movement</option>
+                <option value="4">Wet + Bowel Movement</option>
+                <option value="5">Diarrhea</option>
+            </select>
+        </div>*@
+
+    <button class="nhsuk-button @(isSaved? "nhsuk-button--disabled": "")" type="submit" onclick="@OnSaveClick">
+        @if (isSaved)
+        {
+        <span>Done</span>
+        }
+        else
+        {
+            <i class="fas fa-check"></i>
+        }
+    </button>
+
+    @functions {
+    private string NappyType { get; set; } = "2";
+    private bool isSaved = false;
+
+    void OnNappyInputChange(UIChangeEventArgs e)
+    {
+        NappyType = e.Value.ToString();
+        isSaved = false;
+    }
+
+    void OnSaveClick(UIMouseEventArgs e)
+    {
+        var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+        string NappyTypeDisplayText;
+
+        if (NappyType == "2")
+        {
+            NappyTypeDisplayText = "Dry";
+        }
+        else if (NappyType == "1")
+        {
+            NappyTypeDisplayText = "Wet";
+        }
+        else if (NappyType == "3")
+        {
+            NappyTypeDisplayText = "Bowel Movement";
+        }
+        else if (NappyType == "4")
+        {
+            NappyTypeDisplayText = "Wet + Bowel Movement";
+        }
+        else
+        {
+            NappyTypeDisplayText = "Diarrhea";
+        }
+
+        var obs = new Observation();
+        obs.Code = new CodeableConcept("http://hapi.fhir.org/baseDstu3/CodeSystem/NHSHMP-Nappy-1", NappyType, NappyTypeDisplayText);
+        obs.Subject = new ResourceReference($"Patient/{Configuration.PATIENT_LOGICAL_ID}");
+        obs.Status = ObservationStatus.Registered;
+        obs.Issued = new DateTimeOffset(DateTime.Now);
+
+        client.Create<Observation>(obs);
+
+        isSaved = true;
+    }
+    }

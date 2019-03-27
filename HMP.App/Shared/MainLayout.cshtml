@@ -1,4 +1,6 @@
 ﻿@inherits BlazorLayoutComponent
+@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper
+@implements IDisposable
 
 <a class="nhsuk-skip-link" href="#maincontent">Skip to main content</a>
 
@@ -13,118 +15,128 @@
                 </svg>
             </a>
         </div>
-        @*<div class="nhsuk-header__content" id="content-header">
+
+        <div class="nhsuk-header__content" id="content-header">
             <div class="nhsuk-header__menu">
-                <button class="nhsuk-header__menu-toggle" id="toggle-menu" aria-controls="header-navigation" aria-label="Open menu">Menu</button>
+                <PatientBanner PatientBundle="@PatientBundle"></PatientBanner>
             </div>
-            <div class="nhsuk-header__search">
-                <button class="nhsuk-header__search-toggle" id="toggle-search" aria-controls="search" aria-label="Open search">
-                    <svg class="nhsuk-icon nhsuk-icon__search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M19.71 18.29l-4.11-4.1a7 7 0 1 0-1.41 1.41l4.1 4.11a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"></path>
-                    </svg>
-                    <span class="nhsuk-u-visually-hidden">Search</span>
-                </button>
-                <div class="nhsuk-header__search-wrap" id="wrap-search">
-                    <form class="nhsuk-header__search-form" id="search" action="/search/" method="get" role="search">
-                        <label class="nhsuk-u-visually-hidden" for="search-field">Search the NHS website</label>
-                        <div class="autocomplete-container" id="autocomplete-container"></div>
-                        <input class="nhsuk-search__input" id="search-field" name="search-field" type="search" placeholder="Search" autocomplete="off">
-                        <button class="nhsuk-search__submit" type="submit">
-                            <svg class="nhsuk-icon nhsuk-icon__search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <path d="M19.71 18.29l-4.11-4.1a7 7 0 1 0-1.41 1.41l4.1 4.11a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"></path>
-                            </svg>
-                            <span class="nhsuk-u-visually-hidden">Search</span>
-                        </button>
-                        <button class="nhsuk-search__close" id="close-search">
-                            <svg class="nhsuk-icon nhsuk-icon__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <path d="M13.41 12l5.3-5.29a1 1 0 1 0-1.42-1.42L12 10.59l-5.29-5.3a1 1 0 0 0-1.42 1.42l5.3 5.29-5.3 5.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5.29-5.3 5.29 5.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z"></path>
-                            </svg>
-                            <span class="nhsuk-u-visually-hidden">Close search</span>
-                        </button>
-                    </form>
+        </div>
+
+
+        @*<div class="nhsuk-header__content" id="content-header">
+                <div class="nhsuk-header__menu">
+                    <button class="nhsuk-header__menu-toggle" id="toggle-menu" aria-controls="header-navigation" aria-label="Open menu">Menu</button>
                 </div>
-            </div>
-        </div>*@
+                <div class="nhsuk-header__search">
+                    <button class="nhsuk-header__search-toggle" id="toggle-search" aria-controls="search" aria-label="Open search">
+                        <svg class="nhsuk-icon nhsuk-icon__search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M19.71 18.29l-4.11-4.1a7 7 0 1 0-1.41 1.41l4.1 4.11a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"></path>
+                        </svg>
+                        <span class="nhsuk-u-visually-hidden">Search</span>
+                    </button>
+                    <div class="nhsuk-header__search-wrap" id="wrap-search">
+                        <form class="nhsuk-header__search-form" id="search" action="/search/" method="get" role="search">
+                            <label class="nhsuk-u-visually-hidden" for="search-field">Search the NHS website</label>
+                            <div class="autocomplete-container" id="autocomplete-container"></div>
+                            <input class="nhsuk-search__input" id="search-field" name="search-field" type="search" placeholder="Search" autocomplete="off">
+                            <button class="nhsuk-search__submit" type="submit">
+                                <svg class="nhsuk-icon nhsuk-icon__search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M19.71 18.29l-4.11-4.1a7 7 0 1 0-1.41 1.41l4.1 4.11a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42zM5 10a5 5 0 1 1 5 5 5 5 0 0 1-5-5z"></path>
+                                </svg>
+                                <span class="nhsuk-u-visually-hidden">Search</span>
+                            </button>
+                            <button class="nhsuk-search__close" id="close-search">
+                                <svg class="nhsuk-icon nhsuk-icon__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path d="M13.41 12l5.3-5.29a1 1 0 1 0-1.42-1.42L12 10.59l-5.29-5.3a1 1 0 0 0-1.42 1.42l5.3 5.29-5.3 5.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5.29-5.3 5.29 5.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z"></path>
+                                </svg>
+                                <span class="nhsuk-u-visually-hidden">Close search</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>*@
     </div>
     @*<nav class="nhsuk-header__navigation" id="header-navigation" role="navigation" aria-label="Primary navigation" aria-labelledby="label-navigation">
-        <p class="nhsuk-header__navigation-title">
-            <span id="label-navigation">Menu</span>
-            <button class="nhsuk-header__navigation-close" id="close-menu">
-                <svg class="nhsuk-icon nhsuk-icon__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M13.41 12l5.3-5.29a1 1 0 1 0-1.42-1.42L12 10.59l-5.29-5.3a1 1 0 0 0-1.42 1.42l5.3 5.29-5.3 5.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5.29-5.3 5.29 5.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z"></path>
-                </svg>
-                <span class="nhsuk-u-visually-hidden">Close menu</span>
-            </button>
-        </p>
-        <ul class="nhsuk-header__navigation-list">
-            <li class="nhsuk-header__navigation-item nhsuk-header__navigation-item--for-mobile">
-                <a class="nhsuk-header__navigation-link" href="/">
-                    Home
-                    <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+            <p class="nhsuk-header__navigation-title">
+                <span id="label-navigation">Menu</span>
+                <button class="nhsuk-header__navigation-close" id="close-menu">
+                    <svg class="nhsuk-icon nhsuk-icon__close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M13.41 12l5.3-5.29a1 1 0 1 0-1.42-1.42L12 10.59l-5.29-5.3a1 1 0 0 0-1.42 1.42l5.3 5.29-5.3 5.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l5.29-5.3 5.29 5.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z"></path>
                     </svg>
-                </a>
-            </li>
-            <li class="nhsuk-header__navigation-item">
-                <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/conditions">
-                    Health A-Z
-                    <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                    </svg>
-                </a>
-            </li>
-            <li class="nhsuk-header__navigation-item">
-                <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/live-well/">
-                    Live Well
-                    <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                    </svg>
-                </a>
-            </li>
-            <li class="nhsuk-header__navigation-item">
-                <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/conditions/social-care-and-support/">
-                    Care and support
-                    <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                    </svg>
-                </a>
-            </li>
-            <li class="nhsuk-header__navigation-item">
-                <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/news/">
-                    Health news
-                    <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                    </svg>
-                </a>
-            </li>
-            <li class="nhsuk-header__navigation-item">
-                <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/service-search">
-                    Services near you
-                    <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
-                    </svg>
-                </a>
-            </li>
-        </ul>
-    </nav>*@
+                    <span class="nhsuk-u-visually-hidden">Close menu</span>
+                </button>
+            </p>
+            <ul class="nhsuk-header__navigation-list">
+                <li class="nhsuk-header__navigation-item nhsuk-header__navigation-item--for-mobile">
+                    <a class="nhsuk-header__navigation-link" href="/">
+                        Home
+                        <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="nhsuk-header__navigation-item">
+                    <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/conditions">
+                        Health A-Z
+                        <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="nhsuk-header__navigation-item">
+                    <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/live-well/">
+                        Live Well
+                        <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="nhsuk-header__navigation-item">
+                    <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/conditions/social-care-and-support/">
+                        Care and support
+                        <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="nhsuk-header__navigation-item">
+                    <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/news/">
+                        Health news
+                        <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+                        </svg>
+                    </a>
+                </li>
+                <li class="nhsuk-header__navigation-item">
+                    <a class="nhsuk-header__navigation-link" href="https://www.nhs.uk/service-search">
+                        Services near you
+                        <svg class="nhsuk-icon nhsuk-icon__chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.5 12a1 1 0 0 1-.29.71l-5 5a1 1 0 0 1-1.42-1.42l4.3-4.29-4.3-4.29a1 1 0 0 1 1.42-1.42l5 5a1 1 0 0 1 .29.71z"></path>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </nav>*@
 </header>
 
 @*<nav class="nhsuk-breadcrumb" aria-label="Breadcrumb">
-    <div class="nhsuk-width-container">
-        <ol class="nhsuk-breadcrumb__list">
-            <li class="nhsuk-breadcrumb__item"><a class="nhsuk-breadcrumb__link" href="/level-one">Level one</a></li>
-            <li class="nhsuk-breadcrumb__item"><a class="nhsuk-breadcrumb__link" href="/level-one/level-two">Level two</a></li>
-            <li class="nhsuk-breadcrumb__item"><a class="nhsuk-breadcrumb__link" href="/level-one/level-two/level-three">Level three</a></li>
-        </ol>
-        <p class="nhsuk-breadcrumb__back"><a class="nhsuk-breadcrumb__backlink" href="/level-one/level-two/level-three">Back to Level three</a></p>
-    </div>
-</nav>*@
+        <div class="nhsuk-width-container">
+            <ol class="nhsuk-breadcrumb__list">
+                <li class="nhsuk-breadcrumb__item"><a class="nhsuk-breadcrumb__link" href="/level-one">Level one</a></li>
+                <li class="nhsuk-breadcrumb__item"><a class="nhsuk-breadcrumb__link" href="/level-one/level-two">Level two</a></li>
+                <li class="nhsuk-breadcrumb__item"><a class="nhsuk-breadcrumb__link" href="/level-one/level-two/level-three">Level three</a></li>
+            </ol>
+            <p class="nhsuk-breadcrumb__back"><a class="nhsuk-breadcrumb__backlink" href="/level-one/level-two/level-three">Back to Level three</a></p>
+        </div>
+    </nav>*@
 
 <div class="nhsuk-width-container">
     <main class="nhsuk-main-wrapper" id="maincontent">
         <div class="nhsuk-grid-row">
             <div class="nhsuk-grid-column-three-quarters">
+
                 @Body
+
             </div>
         </div>
     </main>
@@ -134,14 +146,15 @@
     <div class="nhsuk-footer" id="nhsuk-footer">
         <div class="nhsuk-width-container">
             @*<h2 class="nhsuk-u-visually-hidden">Support links</h2>
-            <ul class="nhsuk-footer__list">
-                <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/Pages/nhs-sites.aspx">NHS sites</a></li>
-                <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/about-us">About us</a></li>
-                <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/contact-us/">Contact us</a></li>
-                <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/about-us/sitemap/">Sitemap</a></li>
-                <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/our-policies/">Our policies</a></li>
-            </ul>
-            <p class="nhsuk-footer__copyright">&copy; Crown copyright</p>*@
+                <ul class="nhsuk-footer__list">
+                    <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/Pages/nhs-sites.aspx">NHS sites</a></li>
+                    <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/about-us">About us</a></li>
+                    <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/contact-us/">Contact us</a></li>
+                    <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/about-us/sitemap/">Sitemap</a></li>
+                    <li class="nhsuk-footer__list-item"><a class="nhsuk-footer__list-item-link" href="https://www.nhs.uk/our-policies/">Our policies</a></li>
+                </ul>
+                <p class="nhsuk-footer__copyright">&copy; Crown copyright</p>*@
+            <NarBar CurrentLocation="@CurrentLocation"></NarBar>
         </div>
     </div>
 </footer>
@@ -159,3 +172,28 @@
             @Body
         </div>
     </div>*@
+
+
+@functions {
+    public Bundle PatientBundle { get; set; }
+    public string CurrentLocation { get; set; } = "";
+
+    protected override void OnInit()
+    {
+        UriHelper.OnLocationChanged += OnLocationChanges;
+
+        var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+        PatientBundle = client.SearchById<Patient>(Configuration.PATIENT_LOGICAL_ID);
+    }
+
+    private void OnLocationChanges(object sender, string newLocation)
+    {
+        var lastSegment = newLocation.Substring(newLocation.LastIndexOf("/") + 1);
+        CurrentLocation = lastSegment;
+    }
+
+    public void Dispose()
+    {
+        UriHelper.OnLocationChanged -= OnLocationChanges;
+    }
+}

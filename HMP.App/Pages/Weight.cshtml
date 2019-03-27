@@ -1,0 +1,93 @@
+﻿@page "/weight"
+
+    <div class="nhsuk-form-group">
+        <label class="nhsuk-label" for="weight">
+            Weight
+        </label>
+        <input class="nhsuk-input nhsuk-input--width-3" ref="@WeightInput" id="weightTextBox" name="weight" type="number" bind="@WeightValue" oninput="@OnWeightInput" /> g
+        <br />
+        <br />
+        <input type="range" min="0" max="6000" name="weight" orient="vertical" bind="@WeightValue" oninput="@OnWeightInput" />
+        <br />
+        <br />
+        <button class="nhsuk-button @(isSaved ? "nhsuk-button--disabled" : "")" type="submit" onclick="@OnSaveClick">
+            @if (isSaved)
+            {
+            <span>Done</span>
+            }
+            else
+            {
+                <i class="fas fa-check"></i>
+            }
+        </button>
+    </div>
+
+
+        @functions {
+            private decimal WeightValue { get; set; }
+            private bool isSaved = false;
+            private ElementRef WeightInput;
+
+            protected override void OnInit()
+            {
+                var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+                string[] includes = { "Observation" };
+                var searchParams = new SearchParams();
+
+                searchParams.Add("patient", Configuration.PATIENT_LOGICAL_ID);
+
+                List<Observation> weightObservation = new List<Observation>();
+
+                var observationBundle = client.Search<Observation>(searchParams);
+
+                foreach (var entry in observationBundle.Entry)
+                {
+                    var obs = (Observation)entry.Resource;
+
+                    var code = obs.Code.Coding.FirstOrDefault();
+                    if (code != null)
+                    {
+                        if (code.System == "http://snomed.info/sct" && code.Code == "27113001")
+                        {
+                            weightObservation.Add(obs);
+                        }
+                    }
+                }
+
+                var lastWeightObservation = weightObservation.OrderByDescending(o => o.Id).FirstOrDefault();
+                if (lastWeightObservation != null)
+                {
+                    if (lastWeightObservation?.Value is Quantity)
+                    {
+                        var quantity = (Quantity)lastWeightObservation.Value;
+                        WeightValue = quantity.Value ?? 0;
+                    }
+                }
+            }
+
+            protected async override System.Threading.Tasks.Task OnAfterRenderAsync()
+            {
+                await JSRuntime.Current.InvokeAsync<bool>("commonFunctions.focus", WeightInput);
+            }
+
+            void OnWeightInput(UIChangeEventArgs e)
+            {
+                isSaved = false;
+            }
+
+            void OnSaveClick(UIMouseEventArgs e)
+            {
+                var client = new FhirClient(Configuration.FHIR_ENDPOINT);
+
+                var obs = new Observation();
+                obs.Code = new CodeableConcept("http://snomed.info/sct", "27113001", "Body weight");
+                obs.Subject = new ResourceReference($"Patient/{Configuration.PATIENT_LOGICAL_ID}");
+                obs.Value = new Quantity(WeightValue, "g");
+                obs.Status = ObservationStatus.Registered;
+                obs.Issued = new DateTimeOffset(DateTime.Now);
+
+                client.Create<Observation>(obs);
+
+                isSaved = true;
+            }
+        }
